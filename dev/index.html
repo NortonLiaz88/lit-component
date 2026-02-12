@@ -7,6 +7,7 @@
     <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../node_modules/lit/polyfill-support.js"></script>
     <script type="module" src="../my-element.js"></script>
+    <script type="module" src="../custom-carousel.js"></script>
     <style>
       p {
         border: solid 1px blue;
@@ -18,5 +19,30 @@
     <my-element>
       <p>This is child content</p>
     </my-element>
+    <custom-carousel></custom-carousel>
   </body>
+
+  <script type="module">
+    import '../custom-carousel.js';
+
+    const el = document.querySelector('custom-carousel');
+    el.assets = [
+      {
+        display: 'true',
+        fileReference: 'https://picsum.photos/id/237/200/300',
+        alt: 'Slide 1',
+        imageTitle: 'Title 1',
+        description: 'Description 1',
+        linkURL: 'https://example.com/1'
+      },
+      {
+        display: 'true',
+        fileReference: 'https://picsum.photos/id/237/200/300',
+        alt: 'Slide 2',
+        imageTitle: 'Title 2',
+        description: 'Description 2',
+        linkURL: 'https://example.com/2'
+      }
+    ];
+  </script>
 </html>
