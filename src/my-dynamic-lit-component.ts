@@ -1,11 +1,21 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 
+/**
+ * Structure of the simulated API response.
+ */
 interface ApiResponse {
-  id: number; title?: string; body?: string; [key: string]: any;
+  id: number; 
+  title?: string; 
+  body?: string; 
+  [key: string]: any;
 }
 
-// ⚠️ IMPORTANT: This tag name MUST match what you type in the AEM Dialog!
+/**
+ * A dynamic Lit component that simulates fetching API data based on an AEM-injected ID.
+ * ⚠️ IMPORTANT: This tag name MUST match what you type in the AEM Dialog!
+ * * @element my-dynamic-lit-component
+ */
 @customElement('my-dynamic-lit-component')
 export class MyDynamicLitComponent extends LitElement {
   static override styles = css`
@@ -13,11 +23,19 @@ export class MyDynamicLitComponent extends LitElement {
     .error { color: #d32f2f; font-weight: bold; }
   `;
 
+  /**
+   * The ID injected by the AEM dialog. Used to fetch the corresponding data.
+   */
   @property({type: String, attribute: 'wp-app-parameter-id'})
   parameterId: string = '';
 
+  /** Holds the fetched API data. */
   @state() private data: ApiResponse | null = null;
+  
+  /** Tracks the loading state during the simulated network request. */
   @state() private loading: boolean = true;
+  
+  /** Holds any error messages encountered during the fetch operation. */
   @state() private error: string | null = null;
 
   override connectedCallback() {
@@ -25,6 +43,10 @@ export class MyDynamicLitComponent extends LitElement {
     void this.fetchData();
   }
 
+  /**
+   * Simulates an asynchronous API fetch with an 800ms delay.
+   * Includes mock logic for testing successful responses, empty parameters, and 500 errors.
+   */
   async fetchData() {
     if (!this.parameterId) {
       this.error = 'No Parameter ID provided.';
