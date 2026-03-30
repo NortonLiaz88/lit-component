@@ -1,6 +1,7 @@
 import { css } from 'lit';
 
 export const carouselStyles = css`
+  /* --- Variáveis e Base --- */
   .cmp-custom-carousel {
     width: 100%;
     position: relative;
@@ -8,6 +9,19 @@ export const carouselStyles = css`
     background-color: #d4dad9;
     color: #252525;
     overflow: hidden;
+  }
+
+  /* Classe padrão para esconder elementos apenas visualmente (mantendo acessíveis para leitores de tela) */
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
   }
 
   .cmp-custom-carousel__placeholder {
@@ -19,34 +33,29 @@ export const carouselStyles = css`
     color: #666;
   }
 
-  .cmp-title {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  .cmp-title__text {
-    font-size: 20px;
-    margin: 0;
-  }
-
+  /* --- Layout do Carousel --- */
   .carousel-container {
     position: relative;
     display: flex;
     align-items: center;
     gap: 15px;
+    width: 100%;
+    /* Mobile: Melhora a experiência de swipe naitvo */
+    touch-action: pan-y; /* Permite scroll vertical da página, mas gerencia swipe horizontal */
   }
 
   .cmp-assets__track {
     display: flex;
     overflow: hidden;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
   }
 
+  /* --- Itens e Imagens --- */
   .cmp-assets__item {
     display: none;
     width: 100%;
     box-sizing: border-box;
-    padding: 0 5px;
   }
 
   .cmp-assets__item.is-active {
@@ -55,28 +64,54 @@ export const carouselStyles = css`
 
   .cmp-assets__image-wrapper {
     width: 100%;
+    /* No mobile, uma altura fixa de 400px pode ser muito grande. Usamos vh (viewport height). */
     height: 400px;
+    max-height: 70vh; /* Não deixa passar de 70% da altura da tela */
     overflow: hidden;
     position: relative;
-  }
-
-  .cmp-assets__image-wrapper a {
-    display: block;
-    width: 100%;
-    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .cmp-assets__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
 
+  /* Removi o pointer-events: none; do link desativado. 
+     Para a11y, é melhor gerenciar via tabindex no JS para que o leitor de tela nem foque nele. */
+  .cmp-assets__image-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+  }
+
+  /* --- Textos e Conteúdo sobre a Imagem --- */
+  .cmp-assets__title {
+    margin-bottom: 10px;
+    position: absolute;
+    top: 50%; /* Centraliza verticalmente */
+    transform: translateY(-50%);
+    left: 2rem;
+    right: 2rem; /* Garante padding nas laterais no mobile */
+    text-align: center;
+  }
+
+  .cmp-assets__image-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffffff;
+    display: block; /* Garante que quebre linha */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Melhora leitura sobre a imagem */
+  }
+
   .cmp-assets__description {
-    margin-top: 10px;
-    font-size: 1.25rem;
     margin: 10px 0 20px 0;
+    font-size: 1.25rem;
     line-height: 1.5;
     display: flex;
   }
@@ -92,24 +127,49 @@ export const carouselStyles = css`
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
 
-  .cmp-assets__indicators {
-    margin-top: 10px;
+  /* --- Botão "Discover" --- */
+  .cmp-assets_button-container {
+    appearance: none;
+    background-color: #2f80ed;
+    border-radius: 10px;
+    border-style: none;
+    color: #fff !important; /* !important para garantir sobre regras de links globais */
+    cursor: pointer;
+    display: inline-block;
+    font-family: Inter, -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    height: 50px;
+    line-height: 1.5;
+    padding: 14px 30px;
+    position: relative;
     text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
+    white-space: nowrap;
+    margin-top: 1.5rem; /* Reduzido para caber melhor no mobile */
   }
 
-  .cmp-link__screen-reader-only {
-    display: none !important;
+  .cmp-assets_button-container:hover {
+    background-color: #1366d6;
+    box-shadow: rgba(0, 0, 0, 0.05) 0 5px 30px, rgba(0, 0, 0, 0.05) 0 1px 4px;
+    transform: translateY(-2px); /* Efeito mais visível */
   }
 
+  .cmp-assets_button-container:focus-visible {
+    outline: 3px solid #6aa1f5;
+    outline-offset: 2px;
+  }
+
+  /* --- Indicadores (Bolinhas) --- */
   .cmp-assets__indicators {
     position: absolute;
-    bottom: 2.6rem;
+    bottom: 1.5rem; /* Subiu um pouco para não bater na borda da tela */
     left: 50%;
     transform: translateX(-50%);
-    margin-top: 10px;
-    text-align: center;
     z-index: 10;
   }
 
@@ -122,137 +182,28 @@ export const carouselStyles = css`
   }
 
   .cmp-assets__indicator button {
-    width: 10px;
-    height: 10px;
+    width: 12px; /* Ligeiramente maior para facilitar toque no mobile */
+    height: 12px;
     border-radius: 50%;
-    border: none;
-    background-color: #ccc;
+    border: 2px solid #fff; /* Adicionado contraste */
+    background-color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     padding: 0;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
   }
 
-  .cmp-assets__indicator.is-active button {
-    background-color: #6aa1f5;
+  .cmp-assets__indicator button:hover {
+    transform: scale(1.1);
   }
 
-  .cmp-assets__indicator button[aria-current='true'],
-  .cmp-assets__item.is-active ~ .cmp-assets__indicators .cmp-assets__indicator:first-child button {
+  .cmp-assets__indicator.is-active button,
+  .cmp-assets__indicator button[aria-current='true'] {
     background-color: #fff;
+    width: 14px; /* Destaque visual */
+    height: 14px;
   }
 
-  .cmp-assets__title {
-    margin-bottom: 10px;
-    position: absolute;
-    top: 40%;
-    margin-left: 1.5rem;
-  }
-
-  .cmp-assets__image-text {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #ffffff;
-    text-align: center;
-  }
-
-  .cmp-assets__image-link--disabled {
-    pointer-events: none;
-    cursor: default;
-  }
-
-  .cmp-assets_button-container {
-    appearance: none;
-    backface-visibility: hidden;
-    background-color: #2f80ed;
-    border-radius: 10px;
-    border-style: none;
-    box-shadow: none;
-    box-sizing: border-box;
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-family: Inter, -apple-system, system-ui, 'Segoe UI', Helvetica, Arial,
-      sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    height: 50px;
-    letter-spacing: normal;
-    line-height: 1.5;
-    outline: none;
-    overflow: hidden;
-    padding: 14px 30px;
-    position: relative;
-    text-align: center;
-    text-decoration: none;
-    transform: translate3d(0, 0, 0);
-    transition: all 0.3s;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    vertical-align: top;
-    white-space: nowrap;
-    margin-top: 3rem;
-  }
-
-  .cmp-assets_button-container:hover {
-    background-color: #1366d6;
-    box-shadow: rgba(0, 0, 0, 0.05) 0 5px 30px,
-      rgba(0, 0, 0, 0.05) 0 1px 4px;
-    opacity: 1;
-    transform: translateY(0);
-    transition-duration: 0.35s;
-  }
-
-  .cmp-assets_button-container:active {
-    box-shadow: rgba(0, 0, 0, 0.1) 0 3px 6px 0,
-      rgba(0, 0, 0, 0.1) 0 0 10px 0,
-      rgba(0, 0, 0, 0.1) 0 1px 4px -1px;
-    transform: translateY(2px);
-    transition-duration: 0.35s;
-  }
-
-  .carousel-controls-prev,
-  .carousel-controls-next {
-    flex-shrink: 0;
-  }
-
-  .carousel-controls-prev.hidden,
-  .carousel-controls-next.hidden {
-    display: none;
-  }
-
-  .carousel-controls-prev button,
-  .carousel-controls-next button {
-    background-color: transparent;
-    border: none;
-    color: #000;
-    font-size: 24px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    padding: 10px;
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  .carousel-controls-prev button:disabled,
-  .carousel-controls-next button:disabled {
-    color: #ccc;
-    cursor: not-allowed;
-  }
-
-  .carousel-controls-prev button:hover:not(:disabled),
-  .carousel-controls-next button:hover:not(:disabled) {
-    color: #ff0000;
-  }
-
-  .carousel-controls-prev button::before {
-    content: '❮';
-  }
-
-  .carousel-controls-next button::before {
-    content: '❯';
-  }
-
+  /* --- Responsividade --- */
   @media (max-width: 991px) {
     .cmp-assets__item {
       width: 100%;
@@ -260,8 +211,12 @@ export const carouselStyles = css`
   }
 
   @media (max-width: 767px) {
-    .cmp-assets__item {
-      width: 100%;
+    .cmp-assets__image-wrapper {
+      height: 300px; /* Altura menor no mobile portrait */
+    }
+
+    .cmp-assets__image-text {
+      font-size: 1.5rem; /* Fonte menor */
     }
 
     .carousel-container {

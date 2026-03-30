@@ -2,78 +2,48 @@ import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { carouselStyles } from './custom-carousel.styles';
 
-/**
- * Represents a single slide asset authored in the AEM dialog.
- */
-interface CarouselAsset {
-  /** Determines if the slide should be rendered. Can be a boolean or a string ('true'/'false'). */
+export interface CarouselAsset {
   display: string | boolean;
-  /** The URL or path to the image file. */
   fileReference: string;
-  /** Alternative text for the image for screen readers. */
   alt?: string;
-  /** The headline or title displayed over the image. */
   imageTitle?: string;
-  /** Subtext or description displayed below the title. */
   description?: string;
-  /** Destination URL if the slide or "Discover" button should be clickable. */
   linkURL?: string;
 }
 
-/**
- * An accessible, keyboard-navigable image carousel component.
- * * @element custom-carousel
- */
 @customElement('custom-carousel')
 export class CustomCarousel extends LitElement {
-  
-  /**
-   * The array of slide assets to be displayed in the carousel.
-   * Typically injected as a JSON array via AEM's HTL/Sling Models.
-   */
   @property({ type: Array })
   assets: CarouselAsset[] = [];
 
   static override styles = [carouselStyles];
 
-  /** The index of the currently active slide. */
   @state()
   private currentIndex = 0;
 
-  /**
-   * Filters the raw assets array to only include those marked for display.
-   * Handles both boolean and string representations of 'true'.
-   */
+  // -- Variáveis para gerenciar o Swipe Mobile --
+  private touchStartX = 0;
+  private touchEndX = 0;
+  private readonly minSwipeDistance = 50; // Distância mínima em pixels para considerar um swipe
+
   private get visibleAssets(): CarouselAsset[] {
-    return (this.assets || []).filter(a => {
-      if (typeof a.display === 'boolean') return a.display;
-      return a.display === 'true';
+    return (this.assets || []).filter(asset => {
+      return typeof asset.display === 'boolean' ? asset.display : asset.display === 'true';
     });
   }
 
-  /** The total number of currently visible slides. */
   private get numAssets(): number {
     return this.visibleAssets.length;
   }
 
-  /** Advances the carousel to the next slide if not at the end. */
   private next() {
-    if (this.currentIndex < this.numAssets - 1) {
-      this.currentIndex++;
-    }
+    if (this.currentIndex < this.numAssets - 1) this.currentIndex++;
   }
 
-  /** Returns the carousel to the previous slide if not at the beginning. */
   private prev() {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-    }
+    if (this.currentIndex > 0) this.currentIndex--;
   }
 
-  /**
-   * Jumps directly to a specific slide index.
-   * @param index - The target slide index.
-   */
   private goTo(index: number) {
     if (index >= 0 && index < this.numAssets) {
       this.currentIndex = index;
@@ -81,8 +51,7 @@ export class CustomCarousel extends LitElement {
   }
 
   /**
-   * Handles keyboard navigation for accessibility.
-   * Allows users to cycle through slides using the Left and Right arrow keys.
+   * Gerencia navegação por teclado (Acessibilidade).
    */
   private onKeydown(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') {
@@ -94,10 +63,158 @@ export class CustomCarousel extends LitElement {
     }
   }
 
+  // --- Lógica de Swipe Mobile (Eventos de Toque) ---
+
+  /** Captura onde o usuário tocou inicialmente. */
+  private handleTouchStart(e: TouchEvent) {
+    this.touchStartX = e.touches[0].clientX;
+  }
+
+  /** Atualiza a posição final enquanto o usuário arrasta. */
+  private handleTouchMove(e: TouchEvent) {
+    this.touchEndX = e.touches[0].clientX;
+  }
+
+  /**
+   * Quando o usuário solta o dedo, calcula a distância e direção.
+   * Se for maior que o mínimo, troca de slide.
+   */
+  private handleTouchEnd() {
+    const swipeDistance = this.touchStartX - this.touchEndX;
+
+    // Se o movimento foi nulo ou muito pequeno, não faz nada
+    if (!this.touchEndX || Math.abs(swipeDistance) < this.minSwipeDistance) {
+      return;
+    }
+
+    if (swipeDistance > 0) {
+      // Arrastou para a esquerda -> Próximo
+      this.next();
+    } else {
+      // Arrastou para a direita -> Anterior
+      this.prev();
+    }
+
+    // Reseta os valores para o próximo toque
+    this.touchStartX = 0;
+    this.touchEndX = 0;
+  }
+
+  // --- Sub-métodos de Renderização (Refatorados para Acessibilidade) ---
+
+  /** Renderiza a imagem e o link. Adiciona tabindex="-1" se o slide não estiver ativo. */
+  private renderImage(asset: CarouselAsset, isActive: boolean) {
+    const imageTemplate = html`
+      <img
+        class="cmp-assets__image"
+        src=${asset.fileReference}
+        alt=${asset.alt || ''}
+        loading="lazy"
+      />
+    `;
+
+    if (asset.linkURL) {
+      return html`
+        <a
+          class="cmp-assets__image-link"
+          href=${asset.linkURL}
+          target="_blank"
+          tabindex=${isActive ? '0' : '-1'}
+        >
+          ${imageTemplate}
+        </a>
+      `;
+    }
+
+    return imageTemplate;
+  }
+
+  /** Renderiza o texto e botão "Discover". Garante que links internos tenham tabindex="-1" se inativos. */
+  private renderSlideContent(asset: CarouselAsset, isActive: boolean) {
+    const hasContent = asset.imageTitle || asset.description;
+    if (!hasContent) return nothing;
+
+    return html`
+      <div class="cmp-assets__title">
+        ${asset.imageTitle ? html`<span class="cmp-assets__image-text">${asset.imageTitle}</span>` : nothing}
+        ${asset.description ? html`<span class="cmp-assets__description-text">${asset.description}</span>` : nothing}
+        ${asset.linkURL
+          ? html`
+            <a
+              class="cmp-assets_button-container"
+              href=${asset.linkURL}
+              target="_blank"
+              tabindex=${isActive ? '0' : '-1'}
+            >
+              Discover
+            </a>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  /** Renderiza um único slide inteiro. Usa aria-roledescription para Leitores de Tela. */
+  private renderSlide(asset: CarouselAsset, index: number) {
+    const isActive = index === this.currentIndex;
+
+    return html`
+      <div
+        class="cmp-assets__item ${isActive ? 'is-active' : ''}"
+        role="group"
+        aria-roledescription="slide"
+        aria-label="${index + 1} de ${this.numAssets}"
+        aria-hidden=${!isActive}
+      >
+        <div class="cmp-assets__image-wrapper">
+          ${this.renderImage(asset, isActive)}
+          ${this.renderSlideContent(asset, isActive)}
+        </div>
+      </div>
+    `;
+  }
+
+  /** Renderiza os indicadores (bolinhas). Botões inativos devem ter aria-current="false". */
+  private renderIndicators(assets: CarouselAsset[]) {
+    return html`
+      <div class="cmp-assets__indicators">
+        <ol class="cmp-assets__indicators-list">
+          ${assets.map((_asset, index) => {
+            const isActive = index === this.currentIndex;
+            return html`
+              <li class="cmp-assets__indicator ${isActive ? 'is-active' : ''}">
+                <button
+                  type="button"
+                  @click=${() => this.goTo(index)}
+                  aria-label=${`Ir para slide ${index + 1}`}
+                  aria-current=${isActive ? 'true' : 'false'}
+                ></button>
+              </li>
+            `;
+          })}
+        </ol>
+      </div>
+    `;
+  }
+
+  /**
+   * Renderiza uma região "Live" que avisa leitores de tela quando o slide muda.
+   * Visualmente escondido via CSS.
+   */
+  private renderLiveRegion() {
+    return html`
+      <div
+        class="cmp-custom-carousel__live-region visually-hidden"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        Slide ${this.currentIndex + 1} de ${this.numAssets}
+      </div>
+    `;
+  }
+
   override render() {
     const assets = this.visibleAssets;
 
-    // Fallback UI when no valid assets are provided
     if (!assets || assets.length === 0) {
       return html`
         <div class="cmp-custom-carousel__placeholder">
@@ -107,110 +224,29 @@ export class CustomCarousel extends LitElement {
     }
 
     return html`
-      <div
+      <section
         class="cmp-custom-carousel"
         tabindex="0"
         @keydown=${this.onKeydown}
+        aria-roledescription="carousel"
+        aria-label="Destaques da página"
       >
+        ${this.renderLiveRegion()}
+
         <div class="cmp-assets">
-          <div class="carousel-container">
-            <div
-              class="carousel-controls-prev ${this.numAssets > 1 ? '' : 'hidden'}"
-            >
-              <button
-                type="button"
-                @click=${this.prev}
-                ?disabled=${this.currentIndex === 0}
-                aria-label="Previous slide"
-              ></button>
-            </div>
-
+          <div
+            class="carousel-container"
+            @touchstart=${this.handleTouchStart}
+            @touchmove=${this.handleTouchMove}
+            @touchend=${this.handleTouchEnd}
+          >
             <div class="cmp-assets__track">
-              ${assets.map((asset, index) => {
-                const isActive = index === this.currentIndex;
-                return html`
-                  <div class="cmp-assets__item ${isActive ? 'is-active' : ''}">
-                    <div class="cmp-assets__image-wrapper">
-                      ${asset.linkURL
-                        ? html`
-                            <a
-                              class="cmp-assets__image-link cmp-assets__image-link--disabled"
-                              href=${asset.linkURL}
-                              target="_blank"
-                            >
-                              <img
-                                class="cmp-assets__image"
-                                src=${asset.fileReference}
-                                alt=${asset.alt || ''}
-                                loading="lazy"
-                              />
-                            </a>
-                          `
-                        : html`
-                            <img
-                              class="cmp-assets__image"
-                              src=${asset.fileReference}
-                              alt=${asset.alt || ''}
-                              loading="lazy"
-                            />
-                          `}
-                      
-                      ${asset.imageTitle || asset.description
-                        ? html`
-                            <div class="cmp-assets__title">
-                              ${asset.imageTitle
-                                ? html`<span class="cmp-assets__image-text">${asset.imageTitle}</span>`
-                                : nothing}
-                              ${asset.description
-                                ? html`<span class="cmp-assets__description-text">${asset.description}</span>`
-                                : nothing}
-                              ${asset.linkURL
-                                ? html`
-                                    <a class="cmp-assets_button-container" href=${asset.linkURL} target="_blank">
-                                      Discover
-                                    </a>
-                                  `
-                                : nothing}
-                            </div>
-                          `
-                        : nothing}
-                    </div>
-                  </div>
-                `;
-              })}
+              ${assets.map((asset, index) => this.renderSlide(asset, index))}
             </div>
-
-            <div
-              class="carousel-controls-next ${this.numAssets > 1 ? '' : 'hidden'}"
-            >
-              <button
-                type="button"
-                @click=${this.next}
-                ?disabled=${this.currentIndex >= this.numAssets - 1}
-                aria-label="Next slide"
-              ></button>
-            </div>
-
-            <div class="cmp-assets__indicators">
-              <ol class="cmp-assets__indicators-list">
-                ${assets.map((_asset, index) => {
-                  const isActive = index === this.currentIndex;
-                  return html`
-                    <li class="cmp-assets__indicator ${isActive ? 'is-active' : ''}">
-                      <button
-                        type="button"
-                        @click=${() => this.goTo(index)}
-                        aria-label=${`Go to slide ${index}`}
-                        aria-current=${isActive ? 'true' : 'false'}
-                      ></button>
-                    </li>
-                  `;
-                })}
-              </ol>
-            </div>
+            ${this.renderIndicators(assets)}
           </div>
         </div>
-      </div>
+      </section>
     `;
   }
 }
