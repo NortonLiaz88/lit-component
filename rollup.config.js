@@ -10,12 +10,13 @@ import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 
 export default {
-  // 1. Point the input to the compiled file inside the dist folder
+  // Point the input to the compiled file inside the dist folder
   input: 'dist/my-element.js',
   output: {
-    // 2. Output the final AEM-ready bundle into the dist folder
+    // Output the bundled version into the dist folder
     file: 'dist/my-element.bundled.js',
     format: 'esm',
+    sourcemap: true,
   },
   onwarn(warning) {
     if (warning.code !== 'THIS_IS_UNDEFINED') {

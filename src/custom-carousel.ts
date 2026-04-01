@@ -21,10 +21,9 @@ export class CustomCarousel extends LitElement {
   @state()
   private currentIndex = 0;
 
-  // -- Variáveis para gerenciar o Swipe Mobile --
   private touchStartX = 0;
   private touchEndX = 0;
-  private readonly minSwipeDistance = 50; // Distância mínima em pixels para considerar um swipe
+  private readonly minSwipeDistance = 50;
 
   private get visibleAssets(): CarouselAsset[] {
     return (this.assets || []).filter(asset => {
@@ -50,9 +49,6 @@ export class CustomCarousel extends LitElement {
     }
   }
 
-  /**
-   * Gerencia navegação por teclado (Acessibilidade).
-   */
   private onKeydown(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -63,46 +59,32 @@ export class CustomCarousel extends LitElement {
     }
   }
 
-  // --- Lógica de Swipe Mobile (Eventos de Toque) ---
-
-  /** Captura onde o usuário tocou inicialmente. */
   private handleTouchStart(e: TouchEvent) {
     this.touchStartX = e.touches[0].clientX;
   }
 
-  /** Atualiza a posição final enquanto o usuário arrasta. */
   private handleTouchMove(e: TouchEvent) {
     this.touchEndX = e.touches[0].clientX;
   }
 
-  /**
-   * Quando o usuário solta o dedo, calcula a distância e direção.
-   * Se for maior que o mínimo, troca de slide.
-   */
   private handleTouchEnd() {
     const swipeDistance = this.touchStartX - this.touchEndX;
 
-    // Se o movimento foi nulo ou muito pequeno, não faz nada
     if (!this.touchEndX || Math.abs(swipeDistance) < this.minSwipeDistance) {
       return;
     }
 
     if (swipeDistance > 0) {
-      // Arrastou para a esquerda -> Próximo
       this.next();
     } else {
-      // Arrastou para a direita -> Anterior
       this.prev();
     }
 
-    // Reseta os valores para o próximo toque
     this.touchStartX = 0;
     this.touchEndX = 0;
   }
 
-  // --- Sub-métodos de Renderização (Refatorados para Acessibilidade) ---
 
-  /** Renderiza a imagem e o link. Adiciona tabindex="-1" se o slide não estiver ativo. */
   private renderImage(asset: CarouselAsset, isActive: boolean) {
     const imageTemplate = html`
       <img
@@ -129,7 +111,6 @@ export class CustomCarousel extends LitElement {
     return imageTemplate;
   }
 
-  /** Renderiza o texto e botão "Discover". Garante que links internos tenham tabindex="-1" se inativos. */
   private renderSlideContent(asset: CarouselAsset, isActive: boolean) {
     const hasContent = asset.imageTitle || asset.description;
     if (!hasContent) return nothing;
@@ -153,7 +134,6 @@ export class CustomCarousel extends LitElement {
     `;
   }
 
-  /** Renderiza um único slide inteiro. Usa aria-roledescription para Leitores de Tela. */
   private renderSlide(asset: CarouselAsset, index: number) {
     const isActive = index === this.currentIndex;
 
@@ -173,7 +153,6 @@ export class CustomCarousel extends LitElement {
     `;
   }
 
-  /** Renderiza os indicadores (bolinhas). Botões inativos devem ter aria-current="false". */
   private renderIndicators(assets: CarouselAsset[]) {
     return html`
       <div class="cmp-assets__indicators">
@@ -196,10 +175,6 @@ export class CustomCarousel extends LitElement {
     `;
   }
 
-  /**
-   * Renderiza uma região "Live" que avisa leitores de tela quando o slide muda.
-   * Visualmente escondido via CSS.
-   */
   private renderLiveRegion() {
     return html`
       <div
