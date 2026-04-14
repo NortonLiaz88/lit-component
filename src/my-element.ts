@@ -6,6 +6,7 @@
 
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import { tokenStyles } from './design-tokens.js';
 
 /**
  * An example element.
@@ -16,14 +17,15 @@ import {customElement, property} from 'lit/decorators.js';
  */
 @customElement('my-element')
 export class MyElement extends LitElement {
-  static override styles = css`
+  static override styles = [tokenStyles, css`
     :host {
       display: block;
-      border: solid 1px gray;
-      padding: 16px;
+      border: solid 1px var(--color-border-default);
+      padding: var(--space-16);
       max-width: 800px;
+      font-family: var(--font-family-base);
     }
-  `;
+  `];
 
   /**
    * The name to say "Hello" to.

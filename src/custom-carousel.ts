@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { carouselStyles } from './custom-carousel.styles';
+import { tokenStyles } from './design-tokens.js';
+import { carouselStyles } from './custom-carousel.styles.js';
 
 export interface CarouselAsset {
   display: string | boolean;
@@ -16,7 +17,7 @@ export class CustomCarousel extends LitElement {
   @property({ type: Array })
   assets: CarouselAsset[] = [];
 
-  static override styles = [carouselStyles];
+  static override styles = [tokenStyles, carouselStyles];
 
   @state()
   private currentIndex = 0;

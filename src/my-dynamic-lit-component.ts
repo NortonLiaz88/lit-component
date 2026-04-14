@@ -1,4 +1,5 @@
 import {LitElement, html, css} from 'lit';
+import { tokenStyles } from './design-tokens.js';
 import {customElement, property, state} from 'lit/decorators.js';
 
 /**
@@ -18,10 +19,10 @@ interface ApiResponse {
  */
 @customElement('my-dynamic-lit-component')
 export class MyDynamicLitComponent extends LitElement {
-  static override styles = css`
-    :host { display: block; padding: 16px; border: 3px solid #00c853; background: #f4f4f4; }
-    .error { color: #d32f2f; font-weight: bold; }
-  `;
+  static override styles = [tokenStyles, css`
+    :host { display: block; padding: var(--space-16); border: 3px solid var(--color-status-success); background: var(--color-bg-faint); font-family: var(--font-family-base); }
+    .error { color: var(--color-status-error); font-weight: var(--font-weight-bold); }
+  `];
 
   /**
    * The ID injected by the AEM dialog. Used to fetch the corresponding data.

@@ -1,17 +1,16 @@
 import { css } from 'lit';
 
 export const carouselStyles = css`
-  /* --- Variáveis e Base --- */
+  /* --- Base --- */
   .cmp-custom-carousel {
     width: 100%;
     position: relative;
-    font-family: 'Source Sans Pro', sans-serif;
-    background-color: #d4dad9;
-    color: #252525;
+    font-family: var(--font-family-base);
+    background-color: var(--color-bg-light);
+    color: var(--color-text-dark);
     overflow: hidden;
   }
 
-  /* Classe padrão para esconder elementos apenas visualmente (mantendo acessíveis para leitores de tela) */
   .visually-hidden {
     position: absolute !important;
     width: 1px !important;
@@ -25,23 +24,22 @@ export const carouselStyles = css`
   }
 
   .cmp-custom-carousel__placeholder {
-    padding: 20px;
+    padding: var(--space-20);
     text-align: center;
-    background-color: #f5f5f5;
-    border: 2px dashed #ccc;
-    border-radius: 4px;
-    color: #666;
+    background-color: var(--color-bg-subtle);
+    border: 2px dashed var(--color-border-default);
+    border-radius: var(--space-4);
+    color: var(--color-text-muted);
   }
 
-  /* --- Layout do Carousel --- */
+  /* --- Layout --- */
   .carousel-container {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--space-16);
     width: 100%;
-    /* Mobile: Melhora a experiência de swipe naitvo */
-    touch-action: pan-y; /* Permite scroll vertical da página, mas gerencia swipe horizontal */
+    touch-action: pan-y;
   }
 
   .cmp-assets__track {
@@ -51,7 +49,7 @@ export const carouselStyles = css`
     min-width: 0;
   }
 
-  /* --- Itens e Imagens --- */
+  /* --- Items & Images --- */
   .cmp-assets__item {
     display: none;
     width: 100%;
@@ -64,9 +62,8 @@ export const carouselStyles = css`
 
   .cmp-assets__image-wrapper {
     width: 100%;
-    /* No mobile, uma altura fixa de 400px pode ser muito grande. Usamos vh (viewport height). */
     height: 400px;
-    max-height: 70vh; /* Não deixa passar de 70% da altura da tela */
+    max-height: 70vh;
     overflow: hidden;
     position: relative;
     display: flex;
@@ -81,8 +78,6 @@ export const carouselStyles = css`
     display: block;
   }
 
-  /* Removi o pointer-events: none; do link desativado. 
-     Para a11y, é melhor gerenciar via tabindex no JS para que o leitor de tela nem foque nele. */
   .cmp-assets__image-link {
     display: block;
     width: 100%;
@@ -90,84 +85,84 @@ export const carouselStyles = css`
     text-decoration: none;
   }
 
-  /* --- Textos e Conteúdo sobre a Imagem --- */
+  /* --- Text overlays --- */
   .cmp-assets__title {
-    margin-bottom: 10px;
+    margin-bottom: var(--space-10);
     position: absolute;
-    top: 50%; /* Centraliza verticalmente */
+    top: 50%;
     transform: translateY(-50%);
-    left: 2rem;
-    right: 2rem; /* Garante padding nas laterais no mobile */
+    left: var(--space-32);
+    right: var(--space-32);
     text-align: center;
   }
 
   .cmp-assets__image-text {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #ffffff;
-    display: block; /* Garante que quebre linha */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Melhora leitura sobre a imagem */
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    display: block;
+    text-shadow: 0 var(--space-2) var(--space-4) var(--color-shadow-xl);
   }
 
   .cmp-assets__description {
-    margin: 10px 0 20px 0;
-    font-size: 1.25rem;
-    line-height: 1.5;
+    margin: var(--space-10) 0 var(--space-20) 0;
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-normal);
     display: flex;
   }
 
   .cmp-assets__description-text {
-    font-size: 14px;
-    font-weight: 300;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-light);
     text-align: center;
-    color: #fff;
+    color: var(--color-text-primary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px var(--space-2) var(--color-shadow-xl);
   }
 
-  /* --- Botão "Discover" --- */
+  /* --- CTA Button --- */
   .cmp-assets_button-container {
     appearance: none;
-    background-color: #2f80ed;
-    border-radius: 10px;
+    background-color: var(--color-brand-secondary);
+    border-radius: var(--space-10);
     border-style: none;
-    color: #fff !important; /* !important para garantir sobre regras de links globais */
+    color: var(--color-text-primary) !important;
     cursor: pointer;
     display: inline-block;
-    font-family: Inter, -apple-system, system-ui, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
     height: 50px;
-    line-height: 1.5;
-    padding: 14px 30px;
+    line-height: var(--line-height-normal);
+    padding: var(--space-14) var(--space-30);
     position: relative;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s;
     white-space: nowrap;
-    margin-top: 1.5rem; /* Reduzido para caber melhor no mobile */
+    margin-top: var(--space-24);
   }
 
   .cmp-assets_button-container:hover {
-    background-color: #1366d6;
-    box-shadow: rgba(0, 0, 0, 0.05) 0 5px 30px, rgba(0, 0, 0, 0.05) 0 1px 4px;
-    transform: translateY(-2px); /* Efeito mais visível */
+    background-color: var(--color-interactive-hover-dark);
+    box-shadow: var(--color-shadow-xs) 0 5px 30px, var(--color-shadow-xs) 0 1px 4px;
+    transform: translateY(calc(var(--space-2) * -1));
   }
 
   .cmp-assets_button-container:focus-visible {
-    outline: 3px solid #6aa1f5;
-    outline-offset: 2px;
+    outline: 3px solid var(--color-interactive-focus);
+    outline-offset: var(--space-2);
   }
 
-  /* --- Indicadores (Bolinhas) --- */
+  /* --- Indicators --- */
   .cmp-assets__indicators {
     position: absolute;
-    bottom: 1.5rem; /* Subiu um pouco para não bater na borda da tela */
+    bottom: var(--space-24);
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
@@ -175,18 +170,18 @@ export const carouselStyles = css`
 
   .cmp-assets__indicators-list {
     display: inline-flex;
-    gap: 8px;
+    gap: var(--space-8);
     padding: 0;
     margin: 0;
     list-style: none;
   }
 
   .cmp-assets__indicator button {
-    width: 12px; /* Ligeiramente maior para facilitar toque no mobile */
+    width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid #fff; /* Adicionado contraste */
-    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid var(--color-text-primary);
+    background-color: var(--color-overlay-light);
     cursor: pointer;
     padding: 0;
     transition: background-color 0.3s ease, transform 0.2s ease;
@@ -198,12 +193,12 @@ export const carouselStyles = css`
 
   .cmp-assets__indicator.is-active button,
   .cmp-assets__indicator button[aria-current='true'] {
-    background-color: #fff;
-    width: 14px; /* Destaque visual */
+    background-color: var(--color-text-primary);
+    width: 14px;
     height: 14px;
   }
 
-  /* --- Responsividade --- */
+  /* --- Responsive --- */
   @media (max-width: 991px) {
     .cmp-assets__item {
       width: 100%;
@@ -212,15 +207,15 @@ export const carouselStyles = css`
 
   @media (max-width: 767px) {
     .cmp-assets__image-wrapper {
-      height: 300px; /* Altura menor no mobile portrait */
+      height: 300px;
     }
 
     .cmp-assets__image-text {
-      font-size: 1.5rem; /* Fonte menor */
+      font-size: var(--font-size-3xl);
     }
 
     .carousel-container {
-      gap: 10px;
+      gap: var(--space-10);
     }
   }
 `;
