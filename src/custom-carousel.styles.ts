@@ -12,15 +12,15 @@ export const carouselStyles = css`
   }
 
   .visually-hidden {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .cmp-custom-carousel__placeholder {
@@ -87,70 +87,100 @@ export const carouselStyles = css`
 
   /* --- Text overlays --- */
   .cmp-assets__title {
-    margin-bottom: var(--space-10);
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     left: var(--space-32);
     right: var(--space-32);
+    transform: translateY(-50%);
     text-align: center;
   }
 
   .cmp-assets__image-text {
+    display: block;
     font-size: var(--font-size-4xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
-    display: block;
     text-shadow: 0 var(--space-2) var(--space-4) var(--color-shadow-xl);
   }
 
-  .cmp-assets__description {
-    margin: var(--space-10) 0 var(--space-20) 0;
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-normal);
-    display: flex;
-  }
-
   .cmp-assets__description-text {
+    display: block;
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-light);
-    text-align: center;
     color: var(--color-text-primary);
+    text-align: center;
+    text-shadow: 0 1px var(--space-2) var(--color-shadow-xl);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-    text-shadow: 0 1px var(--space-2) var(--color-shadow-xl);
+  }
+
+  /* --- Nav Buttons (prev / next) --- */
+  .cmp-custom-carousel__nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-40);
+    height: var(--space-40);
+    border: none;
+    border-radius: 50%;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    opacity: 0.8;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .cmp-custom-carousel__nav-btn--prev { left: var(--space-16); }
+  .cmp-custom-carousel__nav-btn--next { right: var(--space-16); }
+
+  .cmp-custom-carousel__nav-btn:hover:not(:disabled) {
+    background-color: var(--color-interactive-default);
+    opacity: 1;
+  }
+
+  .cmp-custom-carousel__nav-btn:focus-visible {
+    outline: 3px solid var(--color-interactive-focus);
+    outline-offset: var(--space-2);
+    opacity: 1;
+  }
+
+  .cmp-custom-carousel__nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 
   /* --- CTA Button --- */
   .cmp-assets_button-container {
-    appearance: none;
-    background-color: var(--color-brand-secondary);
-    border-radius: var(--space-10);
-    border-style: none;
-    color: var(--color-text-primary) !important;
-    cursor: pointer;
     display: inline-block;
+    margin-top: var(--space-24);
+    padding: var(--space-14) var(--space-30);
+    background-color: var(--color-brand-secondary);
+    color: var(--color-text-primary);
     font-family: var(--font-family-base);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-medium);
-    height: 50px;
     line-height: var(--line-height-normal);
-    padding: var(--space-14) var(--space-30);
-    position: relative;
     text-align: center;
     text-decoration: none;
-    transition: all 0.3s;
     white-space: nowrap;
-    margin-top: var(--space-24);
+    border: none;
+    border-radius: var(--space-10);
+    cursor: pointer;
+    appearance: none;
+    transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
   }
 
   .cmp-assets_button-container:hover {
     background-color: var(--color-interactive-hover-dark);
-    box-shadow: var(--color-shadow-xs) 0 5px 30px, var(--color-shadow-xs) 0 1px 4px;
+    box-shadow: 0 5px 30px var(--color-shadow-xs), 0 1px 4px var(--color-shadow-xs);
     transform: translateY(calc(var(--space-2) * -1));
   }
 
@@ -177,13 +207,13 @@ export const carouselStyles = css`
   }
 
   .cmp-assets__indicator button {
-    width: 12px;
-    height: 12px;
+    width: var(--space-12);
+    height: var(--space-12);
+    padding: 0;
     border-radius: 50%;
     border: 2px solid var(--color-text-primary);
     background-color: var(--color-overlay-light);
     cursor: pointer;
-    padding: 0;
     transition: background-color 0.3s ease, transform 0.2s ease;
   }
 
@@ -193,18 +223,12 @@ export const carouselStyles = css`
 
   .cmp-assets__indicator.is-active button,
   .cmp-assets__indicator button[aria-current='true'] {
+    width: var(--space-14);
+    height: var(--space-14);
     background-color: var(--color-text-primary);
-    width: 14px;
-    height: 14px;
   }
 
   /* --- Responsive --- */
-  @media (max-width: 991px) {
-    .cmp-assets__item {
-      width: 100%;
-    }
-  }
-
   @media (max-width: 767px) {
     .cmp-assets__image-wrapper {
       height: 300px;

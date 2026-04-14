@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { tokenStyles } from './design-tokens.js';
 import { carouselStyles } from './custom-carousel.styles.js';
 
@@ -17,6 +18,10 @@ export class CustomCarousel extends LitElement {
   @property({ type: Array })
   assets: CarouselAsset[] = [];
 
+  /** Accessible name for the carousel region. Overridable via the `label` attribute. */
+  @property({ type: String })
+  label = 'Image carousel';
+
   static override styles = [tokenStyles, carouselStyles];
 
   @state()
@@ -27,9 +32,9 @@ export class CustomCarousel extends LitElement {
   private readonly minSwipeDistance = 50;
 
   private get visibleAssets(): CarouselAsset[] {
-    return (this.assets || []).filter(asset => {
-      return typeof asset.display === 'boolean' ? asset.display : asset.display === 'true';
-    });
+    return (this.assets || []).filter(asset =>
+      typeof asset.display === 'boolean' ? asset.display : asset.display === 'true'
+    );
   }
 
   private get numAssets(): number {
@@ -50,13 +55,27 @@ export class CustomCarousel extends LitElement {
     }
   }
 
+  // Handles arrow keys bubbled from any focused child inside the section.
+  // tabindex="0" is intentionally removed from the section — children provide
+  // the focus targets, and their keydown events bubble up here.
   private onKeydown(e: KeyboardEvent) {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      this.prev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      this.next();
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        this.prev();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        this.next();
+        break;
+      case 'Home':
+        e.preventDefault();
+        this.goTo(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        this.goTo(this.numAssets - 1);
+        break;
     }
   }
 
@@ -70,10 +89,7 @@ export class CustomCarousel extends LitElement {
 
   private handleTouchEnd() {
     const swipeDistance = this.touchStartX - this.touchEndX;
-
-    if (!this.touchEndX || Math.abs(swipeDistance) < this.minSwipeDistance) {
-      return;
-    }
+    if (!this.touchEndX || Math.abs(swipeDistance) < this.minSwipeDistance) return;
 
     if (swipeDistance > 0) {
       this.next();
@@ -85,13 +101,15 @@ export class CustomCarousel extends LitElement {
     this.touchEndX = 0;
   }
 
+  private renderImage(asset: CarouselAsset, index: number, isActive: boolean) {
+    // Fall back through alt → imageTitle → positional label so no image is ever unnamed.
+    const alt = asset.alt || asset.imageTitle || `Slide ${index + 1}`;
 
-  private renderImage(asset: CarouselAsset, isActive: boolean) {
-    const imageTemplate = html`
+    const img = html`
       <img
         class="cmp-assets__image"
         src=${asset.fileReference}
-        alt=${asset.alt || ''}
+        alt=${alt}
         loading="lazy"
       />
     `;
@@ -102,14 +120,35 @@ export class CustomCarousel extends LitElement {
           class="cmp-assets__image-link"
           href=${asset.linkURL}
           target="_blank"
+          rel="noopener noreferrer"
           tabindex=${isActive ? '0' : '-1'}
-        >
-          ${imageTemplate}
-        </a>
+        >${img}</a>
       `;
     }
 
-    return imageTemplate;
+    return img;
+  }
+
+  private renderNavButton(direction: 'prev' | 'next') {
+    const isPrev = direction === 'prev';
+    const isDisabled = isPrev
+      ? this.currentIndex === 0
+      : this.currentIndex === this.numAssets - 1;
+    const path = isPrev ? 'M10 4L6 8L10 12' : 'M6 4L10 8L6 12';
+
+    return html`
+      <button
+        type="button"
+        class="cmp-custom-carousel__nav-btn cmp-custom-carousel__nav-btn--${direction}"
+        aria-label=${isPrev ? 'Previous slide' : 'Next slide'}
+        ?disabled=${isDisabled}
+        @click=${isPrev ? this.prev : this.next}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+          <path d=${path} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    `;
   }
 
   private renderSlideContent(asset: CarouselAsset, isActive: boolean) {
@@ -118,18 +157,21 @@ export class CustomCarousel extends LitElement {
 
     return html`
       <div class="cmp-assets__title">
-        ${asset.imageTitle ? html`<span class="cmp-assets__image-text">${asset.imageTitle}</span>` : nothing}
-        ${asset.description ? html`<span class="cmp-assets__description-text">${asset.description}</span>` : nothing}
+        ${asset.imageTitle
+          ? html`<span class="cmp-assets__image-text">${asset.imageTitle}</span>`
+          : nothing}
+        ${asset.description
+          ? html`<span class="cmp-assets__description-text" title=${asset.description}>${asset.description}</span>`
+          : nothing}
         ${asset.linkURL
           ? html`
             <a
               class="cmp-assets_button-container"
               href=${asset.linkURL}
               target="_blank"
+              rel="noopener noreferrer"
               tabindex=${isActive ? '0' : '-1'}
-            >
-              Discover
-            </a>`
+            >Discover</a>`
           : nothing}
       </div>
     `;
@@ -143,11 +185,11 @@ export class CustomCarousel extends LitElement {
         class="cmp-assets__item ${isActive ? 'is-active' : ''}"
         role="group"
         aria-roledescription="slide"
-        aria-label="${index + 1} de ${this.numAssets}"
-        aria-hidden=${!isActive}
+        aria-label="Slide ${index + 1} of ${this.numAssets}"
+        aria-hidden=${ifDefined(!isActive ? 'true' : undefined)}
       >
         <div class="cmp-assets__image-wrapper">
-          ${this.renderImage(asset, isActive)}
+          ${this.renderImage(asset, index, isActive)}
           ${this.renderSlideContent(asset, isActive)}
         </div>
       </div>
@@ -164,9 +206,10 @@ export class CustomCarousel extends LitElement {
               <li class="cmp-assets__indicator ${isActive ? 'is-active' : ''}">
                 <button
                   type="button"
+                  tabindex=${isActive ? '0' : '-1'}
+                  aria-label="Go to slide ${index + 1}"
+                  aria-current=${ifDefined(isActive ? 'true' : undefined)}
                   @click=${() => this.goTo(index)}
-                  aria-label=${`Ir para slide ${index + 1}`}
-                  aria-current=${isActive ? 'true' : 'false'}
                 ></button>
               </li>
             `;
@@ -176,14 +219,20 @@ export class CustomCarousel extends LitElement {
     `;
   }
 
+  /** Prev/next buttons and dot indicators. Omitted entirely when there is only one slide. */
+  private renderNavigation(assets: CarouselAsset[]) {
+    if (assets.length <= 1) return nothing;
+    return html`
+      ${this.renderNavButton('prev')}
+      ${this.renderNavButton('next')}
+      ${this.renderIndicators(assets)}
+    `;
+  }
+
   private renderLiveRegion() {
     return html`
-      <div
-        class="cmp-custom-carousel__live-region visually-hidden"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        Slide ${this.currentIndex + 1} de ${this.numAssets}
+      <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+        Slide ${this.currentIndex + 1} of ${this.numAssets}
       </div>
     `;
   }
@@ -202,25 +251,23 @@ export class CustomCarousel extends LitElement {
     return html`
       <section
         class="cmp-custom-carousel"
-        tabindex="0"
-        @keydown=${this.onKeydown}
+        role="region"
         aria-roledescription="carousel"
-        aria-label="Destaques da página"
+        aria-label=${this.label}
+        @keydown=${this.onKeydown}
       >
         ${this.renderLiveRegion()}
 
-        <div class="cmp-assets">
-          <div
-            class="carousel-container"
-            @touchstart=${this.handleTouchStart}
-            @touchmove=${this.handleTouchMove}
-            @touchend=${this.handleTouchEnd}
-          >
-            <div class="cmp-assets__track">
-              ${assets.map((asset, index) => this.renderSlide(asset, index))}
-            </div>
-            ${this.renderIndicators(assets)}
+        <div
+          class="carousel-container"
+          @touchstart=${this.handleTouchStart}
+          @touchmove=${this.handleTouchMove}
+          @touchend=${this.handleTouchEnd}
+        >
+          <div class="cmp-assets__track">
+            ${assets.map((asset, index) => this.renderSlide(asset, index))}
           </div>
+          ${this.renderNavigation(assets)}
         </div>
       </section>
     `;

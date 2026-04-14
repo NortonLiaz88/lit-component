@@ -1,0 +1,131 @@
+import { Meta, Canvas, Controls, ArgTypes, Story } from '@storybook/blocks';
+import * as CarouselStories from './carousel.stories.ts';
+
+<Meta of={CarouselStories} />
+
+# Custom Carousel
+
+`<custom-carousel>` is a Lit web component that renders an image carousel with optional text overlays and CTA links.
+It is designed for use as an AEM component — slide data is injected via the `.assets` property, typically populated
+from the AEM dialog.
+
+---
+
+## Usage
+
+```html
+<custom-carousel
+  label="Featured destinations"
+  .assets="${slides}"
+></custom-carousel>
+```
+
+The `.assets` property must be set as a **JavaScript property** (`.assets=`, not `assets=`) because it holds an array.
+
+---
+
+## Default
+
+Full carousel with three slides, text overlays, and "Discover" CTA links.
+Use the **Controls** panel below to edit any property live.
+
+<Canvas of={CarouselStories.Default} />
+<Controls of={CarouselStories.Default} />
+
+---
+
+## API Reference
+
+### Properties
+
+<ArgTypes of={CarouselStories} />
+
+### `CarouselAsset` interface
+
+Each item in the `assets` array must conform to this shape:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `display` | `boolean \| string` | ✅ | Controls slide visibility. `false` or `"false"` hides the slide. |
+| `fileReference` | `string` | ✅ | Path or URL of the slide image. |
+| `alt` | `string` | — | Image alt text. Falls back to `imageTitle`, then `"Slide N"`. |
+| `imageTitle` | `string` | — | Headline rendered as an overlay on the image. |
+| `description` | `string` | — | Body copy beneath the headline. Capped at 2 lines via CSS; full text is preserved in the `title` attribute for screen readers. |
+| `linkURL` | `string` | — | When present, wraps the image in an `<a>` and adds a "Discover" CTA button in the overlay. |
+
+---
+
+## Stories
+
+### Image Only
+
+Slides with no `imageTitle` or `description` — no overlay is rendered.
+
+<Canvas of={CarouselStories.ImageOnly} />
+
+---
+
+### With Linked Slides
+
+All slides carry a `linkURL`. Both the image and the overlay button are interactive.
+
+<Canvas of={CarouselStories.WithLinkedSlides} />
+
+---
+
+### Hidden Slides Filtering
+
+The `display` field supports both native `boolean` and the string equivalents
+`"true"` / `"false"` (as serialised by AEM dialogs).
+
+<Canvas of={CarouselStories.WithHiddenSlides} />
+
+---
+
+### Single Slide
+
+When only one slide is visible, navigation controls are omitted entirely.
+
+<Canvas of={CarouselStories.SingleSlide} />
+
+---
+
+### Empty State
+
+When `assets` is empty the component renders a placeholder instead of the carousel.
+
+<Canvas of={CarouselStories.EmptyState} />
+
+---
+
+## Keyboard Navigation
+
+The carousel listens for `keydown` events that bubble from any focused child element.
+No additional `tabindex` is needed on the outer `<section>`.
+
+| Key | Action |
+|---|---|
+| `Tab` | Move focus to the next interactive element (prev button → active slide links → next button → active dot indicator) |
+| `Shift + Tab` | Move focus to the previous interactive element |
+| `ArrowLeft` | Go to the previous slide |
+| `ArrowRight` | Go to the next slide |
+| `Home` | Jump to the first slide |
+| `End` | Jump to the last slide |
+| `Enter` / `Space` | Activate the focused button or link |
+
+---
+
+## Accessibility
+
+- **`role="region"` + `aria-label`** — the carousel is a named landmark; screen reader users can jump to it directly via landmark navigation. Override the label via the `label` property to match the page context.
+- **`aria-roledescription="carousel"`** — announces the landmark type to screen readers as "carousel" rather than the generic "region".
+- **`role="group"` + `aria-roledescription="slide"`** on each item — each slide is announced as "Slide N of total".
+- **`aria-hidden="true"`** on inactive slides — keeps non-visible content out of the accessibility tree. The attribute is fully removed (not set to `"false"`) on the active slide.
+- **Live region** (`aria-live="polite"`, `aria-atomic="true"`) — announces the current slide position (`"Slide 2 of 3"`) to screen readers on every navigation, without interrupting ongoing speech.
+- **Prev / Next buttons** — always present in the tab order when multiple slides exist; marked `disabled` (not hidden) at the first and last slide so screen reader users are aware of the boundary.
+- **Roving tabindex on dot indicators** — only the active indicator is reachable via `Tab`. Arrow keys (handled by the section's keydown listener) update which dot is active.
+- **`aria-current="true"`** on the active indicator — the attribute is removed entirely on inactive indicators rather than being set to `"false"`.
+- **`rel="noopener noreferrer"`** — applied to all `target="_blank"` links.
+- **Image alt text fallback chain** — `alt` → `imageTitle` → positional `"Slide N"` ensures no image is ever unnamed.
+- **Description `title` attribute** — the full description text is preserved in `title` so screen readers can access it even when CSS truncates it visually.
+- **Single slide** — when only one asset is visible, all navigation controls (buttons and indicators) are omitted to avoid meaningless interactive elements.
